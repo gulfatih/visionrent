@@ -7,9 +7,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/visionrent_db
+    url: jdbc:postgresql://localhost:5433/visionrent_db
     username: visionrent_user
-    password: password
+    password: 1
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
