@@ -21,6 +21,4 @@ public interface ContactMessageMapper {
     // List<ContactMessage> --> List<ContactMessageDTO>
     List<ContactMessageDTO> map(List<ContactMessage> contactMessageList);
 
-
-
 }
