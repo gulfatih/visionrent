@@ -2,6 +2,7 @@ package com.visionrent.controller;
 import com.visionrent.domain.ContactMessage;
 import com.visionrent.dto.ContactMessageDTO;
 import com.visionrent.dto.request.ContactMessageRequest;
+import com.visionrent.dto.response.ResponseMessage;
 import com.visionrent.dto.response.VRResponse;
 import com.visionrent.mapper.ContactMessageMapper;
 import com.visionrent.service.ContactMessageService;
@@ -85,6 +86,26 @@ public class ContactMessageController {
         ContactMessageDTO contactMessageDTO = contactMessageMapper.contactMessageToDTO(contactMessage);
 
         return ResponseEntity.ok(contactMessageDTO);
+    }
+
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<VRResponse> deleteContactMessage(@PathVariable Long id){
+        contactMessageService.deleteContactMessage(id);
+        VRResponse vrResponse = new VRResponse(ResponseMessage.CONTACTMESSAGE_DELETE_RESPONSE, true);
+
+        return ResponseEntity.ok(vrResponse);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<VRResponse>  updateContactMessage(@PathVariable Long id, @Valid @RequestBody ContactMessageRequest contactMessageRequest  ){
+        ContactMessage contactMessage = contactMessageMapper.contactMessageRequestToContactMessage(contactMessageRequest);
+        contactMessageService.updateContactMessage(id, contactMessage);
+
+        VRResponse vrResponse =
+                new VRResponse(ResponseMessage.CONTACTMESSAGE_UPDATE_RESPONSE, true);
+
+        return ResponseEntity.ok(vrResponse);
     }
 
 

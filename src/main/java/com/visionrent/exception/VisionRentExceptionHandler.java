@@ -1,6 +1,8 @@
 package com.visionrent.exception;
 
 import com.visionrent.exception.message.ApiResponseError;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpHeaders;
@@ -20,8 +22,10 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class VisionRentExceptionHandler extends ResponseEntityExceptionHandler {
 
-    private ResponseEntity<Object> buildResponseEntity(ApiResponseError error){
+    Logger logger =  LoggerFactory.getLogger(VisionRentExceptionHandler.class);
 
+    private ResponseEntity<Object> buildResponseEntity(ApiResponseError error){
+        logger.error(error.getMessage());
         return new ResponseEntity<>(error, error.getStatus());
 
     }

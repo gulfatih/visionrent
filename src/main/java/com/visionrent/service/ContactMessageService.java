@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 public class ContactMessageService {
 
-    private ContactMessageRepository contactMessageRepository;
+    private final ContactMessageRepository contactMessageRepository;
 
     @Autowired
     public ContactMessageService(ContactMessageRepository contactMessageRepository) {
@@ -40,6 +40,19 @@ public class ContactMessageService {
     }
 
 
+    public void deleteContactMessage(Long id) {
+        ContactMessage foundContactMessage = getContactMessage(id);
+        contactMessageRepository.delete(foundContactMessage);
+    }
 
+    public void updateContactMessage(Long id, ContactMessage contactMessage) {
+        ContactMessage foundContactMessage = getContactMessage(id);
 
+        foundContactMessage.setName(contactMessage.getName());
+        foundContactMessage.setEmail(contactMessage.getEmail());
+        foundContactMessage.setBody(contactMessage.getBody());
+        foundContactMessage.setSubject(contactMessage.getSubject());
+        contactMessageRepository.save(foundContactMessage);
+
+    }
 }
