@@ -10,6 +10,7 @@ import com.visionrent.exception.ResourceNotFoundException;
 import com.visionrent.exception.message.ErrorMessage;
 import com.visionrent.mapper.UserMapper;
 import com.visionrent.repository.UserRepository;
+import com.visionrent.security.SecurityUtils;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -80,4 +81,17 @@ public class UserService {
         return userMapper.map(users);
 
     }
+
+    public UserDTO getPrincipal() {
+        User user = getCurrentUser();
+        return userMapper.userToUserDTO(user);
+    }
+
+    public User getCurrentUser() {
+       String email = SecurityUtils.getCurrentUserLogin().orElseThrow(()->
+                new ResourceNotFoundException(ErrorMessage.PRINCIPAL_NOT_FOUND_MESSAGE));
+
+       return getUserByEmail(email);
+    }
+
 }

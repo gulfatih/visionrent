@@ -92,7 +92,7 @@ public class VisionRentExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     // Security Exceptionlar'ı
-    
+
     @ExceptionHandler(AccessDeniedException.class)
     protected ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
         ApiResponseError error = new ApiResponseError(HttpStatus.FORBIDDEN,
