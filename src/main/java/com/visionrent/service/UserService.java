@@ -14,12 +14,15 @@ import com.visionrent.security.SecurityUtils;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 @Service
 public class UserService {
@@ -94,4 +97,26 @@ public class UserService {
        return getUserByEmail(email);
     }
 
+    public Page<UserDTO> getUserPage(Pageable pageable) {
+        Page<User> userPage = userRepository.findAll(pageable);
+
+        return getUserDTOPage(userPage);
+    }
+
+    private Page<UserDTO> getUserDTOPage(Page<User> userPage) {
+        Page<UserDTO> userDTOPage = userPage.map(new  Function<User, UserDTO>() {
+            @Override
+            public UserDTO apply(User user) {
+                return userMapper.userToUserDTO(user);
+            }
+        });
+        return userDTOPage;
+    }
+
+
+    public UserDTO getUserById(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException(String.format(ErrorMessage.RESOURCE_NOT_FOUND_MESSAGE, id)));
+        return userMapper.userToUserDTO(user);
+    }
 }
