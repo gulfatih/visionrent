@@ -22,7 +22,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
     User ve Role arasında ManyToMany ilişkide default olarak LAZY tanımlıydı
      @EntityGraph ile bunun EAGER olmasını sağladım.
      */
-    @EntityGraph(attributePaths = "roles")
+    @EntityGraph(attributePaths ="roles")
     Optional<User> findByEmail(String email);
 
     @EntityGraph(attributePaths = "roles")
@@ -34,6 +34,11 @@ public interface UserRepository extends JpaRepository<User,Long> {
 
     @EntityGraph(attributePaths = "roles")
     Optional<User> findById(Long id);
+
+    // parantez içine id yazdım, böylelikle roller gelmemiş oldu.
+    // user ve roller ilişkili iken ben sadece userlar'ın gelmesini sağladım.
+    @EntityGraph(attributePaths ="id")
+    Optional<User> findUserById(Long id);
 
 
     @Modifying // Jpa Repository içerisinde custom bir query ile DML operasyonları yapılıyor ise @Modifying konulur.

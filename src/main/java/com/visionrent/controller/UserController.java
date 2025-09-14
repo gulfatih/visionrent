@@ -1,6 +1,7 @@
 package com.visionrent.controller;
 
 import com.visionrent.dto.UserDTO;
+import com.visionrent.dto.request.AdminUserUpdateRequest;
 import com.visionrent.dto.request.UpdatePasswordRequest;
 import com.visionrent.dto.request.UserUpdateRequest;
 import com.visionrent.dto.response.ResponseMessage;
@@ -86,6 +87,25 @@ public class UserController {
         userService.userUpdate(userUpdateRequest);
 
         VRResponse response = new VRResponse(ResponseMessage.USER_UPDATE_RESPONSE_MESSAGE, true);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/auth")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<VRResponse> updateUserAuth(@PathVariable Long id,
+                         @Valid @RequestBody AdminUserUpdateRequest  adminUserUpdateRequest){
+
+        userService.updateUserAuth(id, adminUserUpdateRequest);
+        VRResponse response = new VRResponse(ResponseMessage.USER_UPDATE_RESPONSE_MESSAGE, true);
+        return ResponseEntity.ok(response);
+
+    }
+
+    @DeleteMapping("/{id}/auth")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<VRResponse> deleteUser(@PathVariable Long id){
+        userService.removeUserById(id);
+        VRResponse response = new VRResponse(ResponseMessage.USER_DELETE_RESPONSE_MESSAGE, true);
         return ResponseEntity.ok(response);
     }
 

@@ -4,6 +4,7 @@ import com.visionrent.domain.Role;
 import com.visionrent.domain.User;
 import com.visionrent.domain.enums.RoleType;
 import com.visionrent.dto.UserDTO;
+import com.visionrent.dto.request.AdminUserUpdateRequest;
 import com.visionrent.dto.request.RegisterRequest;
 import com.visionrent.dto.request.UpdatePasswordRequest;
 import com.visionrent.dto.request.UserUpdateRequest;
@@ -14,7 +15,6 @@ import com.visionrent.exception.message.ErrorMessage;
 import com.visionrent.mapper.UserMapper;
 import com.visionrent.repository.UserRepository;
 import com.visionrent.security.SecurityUtils;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -102,21 +102,26 @@ public class UserService {
     }
 
     public Page<UserDTO> getUserPage(Pageable pageable) {
-        Page<User> userPage = userRepository.findAll(pageable);
-
-        return getUserDTOPage(userPage);
+        return userRepository.findAll(pageable).map(userMapper::userToUserDTO);
     }
 
-    private Page<UserDTO> getUserDTOPage(Page<User> userPage) {
-        Page<UserDTO> userDTOPage = userPage.map(new  Function<User, UserDTO>() {
-            @Override
-            public UserDTO apply(User user) {
-                return userMapper.userToUserDTO(user);
-            }
-        });
-        return userDTOPage;
-    }
+    // Yorum satırı olan yerin yaptığı işi "getUserPage" fonksiyonu hemen yukarıda yapıyor
 
+//    public Page<UserDTO> getUserPage(Pageable pageable) {
+//        Page<User> userPage = userRepository.findAll(pageable);
+//
+//        return getUserDTOPage(userPage);
+//    }
+//
+//    private Page<UserDTO> getUserDTOPage(Page<User> userPage) {
+//        Page<UserDTO> userDTOPage = userPage.map(new  Function<User, UserDTO>() {
+//            @Override
+//            public UserDTO apply(User user) {
+//                return userMapper.userToUserDTO(user);
+//            }
+//        });
+//        return userDTOPage;
+//    }
 
     public UserDTO getUserById(Long id) {
         User user = userRepository.findById(id).orElseThrow(() ->
@@ -157,7 +162,81 @@ public class UserService {
                                            userUpdateRequest.getPhoneNumber(),
                                            userUpdateRequest.getEmail(),
                                            userUpdateRequest.getAddress(),
-                                           userUpdateRequest.getZipCode()
-                );
+                                           userUpdateRequest.getZipCode());
+    }
+
+    public void updateUserAuth(Long id, AdminUserUpdateRequest adminUserUpdateRequest) {
+        User user = getById(id);
+
+        if (user.getBuiltIn()){
+            throw new BadRequestException(ErrorMessage.NOT_PERMİTTED_METHOD_MESSAGE);
+        }
+        boolean emailExist = userRepository.existsByEmail(adminUserUpdateRequest.getEmail());
+        if (emailExist && !adminUserUpdateRequest.getEmail().equals(user.getEmail())) {
+            throw new ConflictException(String.format(ErrorMessage.EMAIL_ALREADY_EXIST_MESSAGE,
+                                                      adminUserUpdateRequest.getEmail()));
+        }
+
+        if (adminUserUpdateRequest.getPassword()==null){
+            adminUserUpdateRequest.setPassword(user.getPassword());
+        }
+        else{
+            String encodedPassword = passwordEncoder.encode(adminUserUpdateRequest.getPassword());
+            adminUserUpdateRequest.setPassword(encodedPassword);
+        }
+
+        // Customer ---> ROLE_CUSTOMER
+        // Administaror ---> ROLE_ADMIN
+
+        Set<String> userStrRoles = adminUserUpdateRequest.getRoles();
+        Set<Role> roles = convertRoles(userStrRoles);
+
+        user.setFirstName(adminUserUpdateRequest.getFirstName());
+        user.setLastName(adminUserUpdateRequest.getLastName());
+        user.setPhoneNumber(adminUserUpdateRequest.getPhoneNumber());
+        user.setEmail(adminUserUpdateRequest.getEmail());
+        user.setAddress(adminUserUpdateRequest.getAddress());
+        user.setZipCode(adminUserUpdateRequest.getZipCode());
+        user.setBuiltIn(adminUserUpdateRequest.getBuiltIn());
+
+        user.setRoles(roles);
+        userRepository.save(user);
+
+    }
+
+    public User getById (Long id) {
+        return userRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException(String.format(ErrorMessage.RESOURCE_NOT_FOUND_MESSAGE, id)));
+    }
+
+    public Set<Role> convertRoles(Set<String> pRoles){
+        Set<Role> roles = new HashSet<>();
+
+        if (pRoles==null){
+            Role userRole = roleService.findByType(RoleType.ROLE_CUSTOMER);
+            roles.add(userRole);
+        }
+        else {
+            pRoles.forEach(roleStr -> {
+                if (roleStr.equals(RoleType.ROLE_ADMIN.getName())){
+                    Role adminRole = roleService.findByType(RoleType.ROLE_ADMIN);
+                    roles.add(adminRole);
+                }
+                else{
+                    Role userRole = roleService.findByType(RoleType.ROLE_CUSTOMER);
+                    roles.add(userRole);
+                }
+            });
+        }
+        return roles;
+    }
+
+    public void removeUserById(Long id) {
+        User user =  getById(id);
+
+        if (user.getBuiltIn()){
+            throw new BadRequestException(ErrorMessage.NOT_PERMİTTED_METHOD_MESSAGE);
+        }
+        userRepository.deleteById(id);
     }
 }
