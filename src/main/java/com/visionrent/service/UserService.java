@@ -5,6 +5,9 @@ import com.visionrent.domain.User;
 import com.visionrent.domain.enums.RoleType;
 import com.visionrent.dto.UserDTO;
 import com.visionrent.dto.request.RegisterRequest;
+import com.visionrent.dto.request.UpdatePasswordRequest;
+import com.visionrent.dto.request.UserUpdateRequest;
+import com.visionrent.exception.BadRequestException;
 import com.visionrent.exception.ConflictException;
 import com.visionrent.exception.ResourceNotFoundException;
 import com.visionrent.exception.message.ErrorMessage;
@@ -18,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
@@ -118,5 +122,42 @@ public class UserService {
         User user = userRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException(String.format(ErrorMessage.RESOURCE_NOT_FOUND_MESSAGE, id)));
         return userMapper.userToUserDTO(user);
+    }
+
+    public void updatePassword(UpdatePasswordRequest updatePasswordRequest) {
+        User user = getCurrentUser();
+        if (user.getBuiltIn()){
+            throw new BadRequestException(ErrorMessage.NOT_PERMİTTED_METHOD_MESSAGE);
+        }
+        if (!passwordEncoder.matches(updatePasswordRequest.getOldPassword(), user.getPassword())) {
+            // encode işlemini passwordEncoder daki matches methodu otomatik sağlıyor
+            throw new BadRequestException(ErrorMessage.PASSWORD_NOT_MATCHED_MESSAGE);
+        }
+
+        String hashedPassword = passwordEncoder.encode(updatePasswordRequest.getNewPassword());
+        user.setPassword(hashedPassword);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void userUpdate(UserUpdateRequest userUpdateRequest) {
+        User user = getCurrentUser();
+
+        if (user.getBuiltIn()){
+            throw new BadRequestException(ErrorMessage.NOT_PERMİTTED_METHOD_MESSAGE);
+        }
+        boolean emailExist = userRepository.existsByEmail(userUpdateRequest.getEmail());
+        if (emailExist && !userUpdateRequest.getEmail().equals(user.getEmail())) {
+            throw new ConflictException(String.format(ErrorMessage.EMAIL_ALREADY_EXIST_MESSAGE,
+                                                      userUpdateRequest.getEmail()));
+        }
+
+        userRepository.update(user.getId(),userUpdateRequest.getFirstName(),
+                                           userUpdateRequest.getLastName(),
+                                           userUpdateRequest.getPhoneNumber(),
+                                           userUpdateRequest.getEmail(),
+                                           userUpdateRequest.getAddress(),
+                                           userUpdateRequest.getZipCode()
+                );
     }
 }

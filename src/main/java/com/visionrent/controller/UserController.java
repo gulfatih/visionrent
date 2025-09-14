@@ -1,7 +1,12 @@
 package com.visionrent.controller;
 
 import com.visionrent.dto.UserDTO;
+import com.visionrent.dto.request.UpdatePasswordRequest;
+import com.visionrent.dto.request.UserUpdateRequest;
+import com.visionrent.dto.response.ResponseMessage;
+import com.visionrent.dto.response.VRResponse;
 import com.visionrent.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -60,6 +65,28 @@ public class UserController {
     public ResponseEntity<UserDTO>  getUserById(@PathVariable Long id){
         UserDTO userDTO = userService.getUserById(id);
         return ResponseEntity.ok(userDTO);
+    }
+
+
+
+    @PatchMapping("/auth")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
+    public ResponseEntity<VRResponse> updatePassword(@Valid @RequestBody UpdatePasswordRequest updatePasswordRequest){
+        userService.updatePassword(updatePasswordRequest);
+
+        VRResponse response = new VRResponse();
+        response.setMessage(ResponseMessage.PASSWORD_CHANGED_RESPONSE_MESSAGE);
+        response.setSuccess(true);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
+    public ResponseEntity<VRResponse> updateUser(@Valid @RequestBody UserUpdateRequest  userUpdateRequest){
+        userService.userUpdate(userUpdateRequest);
+
+        VRResponse response = new VRResponse(ResponseMessage.USER_UPDATE_RESPONSE_MESSAGE, true);
+        return ResponseEntity.ok(response);
     }
 
 
