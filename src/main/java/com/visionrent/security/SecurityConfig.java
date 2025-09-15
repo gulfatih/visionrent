@@ -30,7 +30,15 @@ public class SecurityConfig {
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/", "index.html", "/login", "/register", "/js", "/css")
+            .requestMatchers("/",
+                             "index.html",
+                             "/login",
+                             "/register",
+                             "/js/*",
+                             "/css/*",
+                             "/images/*",
+                             "/files/download/**",
+                             "/files/display/**")
             .permitAll().anyRequest().authenticated());
 
         http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);
