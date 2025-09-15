@@ -30,10 +30,6 @@ public class AdminUserUpdateRequest {
     @NotBlank(message = "Please provide your e-mail")
     private String email;
 
-    @Size(min = 4, max = 20, message = "Please provide Correct Size of Password")
-    @NotBlank(message = "Please provide your password")
-    private String password;
-
     @Pattern(regexp = "^((\\(\\d{3}\\))|\\d{3})[- .]?\\d{3}[- .]?\\d{4}$",
             message = "Please provide valid phone number")
     @Size(min = 14, max = 14)

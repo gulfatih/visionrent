@@ -177,16 +177,8 @@ public class UserService {
                                                       adminUserUpdateRequest.getEmail()));
         }
 
-        if (adminUserUpdateRequest.getPassword()==null){
-            adminUserUpdateRequest.setPassword(user.getPassword());
-        }
-        else{
-            String encodedPassword = passwordEncoder.encode(adminUserUpdateRequest.getPassword());
-            adminUserUpdateRequest.setPassword(encodedPassword);
-        }
-
         // Customer ---> ROLE_CUSTOMER
-        // Administaror ---> ROLE_ADMIN
+        // Administrator ---> ROLE_ADMIN
 
         Set<String> userStrRoles = adminUserUpdateRequest.getRoles();
         Set<Role> roles = convertRoles(userStrRoles);
