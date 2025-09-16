@@ -14,4 +14,8 @@ public class ErrorMessage {
     public final static String PASSWORD_NOT_MATCHED_MESSAGE = "Your password are not matched";
 
     public final static String IMAGE_NOT_FOUND_MESSAGE = "ImageFile with id %s not found";
+    public final static String IMAGE_USED_MESSAGE = "ImageFile is used by other car";
+
+    public final static String CAR_NOT_FOUND_MESSAGE = "Car: %s not found";
+
 }
