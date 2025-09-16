@@ -64,7 +64,24 @@ public class CarController {
         return ResponseEntity.ok(carDTO);
     }
 
+    @PutMapping("/admin/auth")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<VRResponse> updateCar(@RequestParam("id") Long id,
+                                                @RequestParam("imageId") UUID imageId,
+                                                @Valid @RequestBody CarDTO carDTO
+                                                ){
+        carService.updateCar(id, imageId, carDTO);
+        VRResponse response = new VRResponse(ResponseMessage.CAR_UPDATE_RESPONSE_MESSAGE,true);
+        return ResponseEntity.ok(response);
 
+    }
 
+    @DeleteMapping("/admin/{id}/auth")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<VRResponse> deleteCar(@PathVariable Long id){
+        carService.removeById(id);
+        VRResponse response = new VRResponse(ResponseMessage.CAR_DELETE_RESPONSE_MESSAGE,true);
+        return ResponseEntity.ok(response);
+    }
 
 }
