@@ -20,4 +20,6 @@ public class ResponseMessage {
 
     public final static String RESERVATION_CREATED_RESPONSE_MESSAGE = "Reservation Successfully Created";
 
+    public final static String CAR_AVAILABLE_MESSAGE = "Car Availability Calculated";
+
 }

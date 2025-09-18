@@ -4,6 +4,8 @@ import com.visionrent.domain.Car;
 import com.visionrent.domain.Reservation;
 import com.visionrent.domain.User;
 import com.visionrent.domain.enums.ReservationStatus;
+import com.visionrent.dto.ReservationDTO;
+import com.visionrent.dto.UserDTO;
 import com.visionrent.dto.request.ReservationRequest;
 import com.visionrent.exception.BadRequestException;
 import com.visionrent.exception.message.ErrorMessage;
@@ -11,6 +13,8 @@ import com.visionrent.mapper.ReservationMapper;
 import com.visionrent.repository.ReservationRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -97,5 +101,12 @@ public class ReservationService {
         return existReservations;
     }
 
+    public List<ReservationDTO> getAllReservations() {
+        List<Reservation> reservations = reservationRepository.findAll();
+        return reservationMapper.map(reservations);
+    }
 
+    public Page<ReservationDTO> getReservationPage(Pageable pageable) {
+        return reservationRepository.findAll(pageable).map(reservationMapper::reservationToReservationDTO);
+    }
 }

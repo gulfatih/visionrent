@@ -87,7 +87,7 @@ public class CarService {
         Car car = getCar(id);
 
         if (car.getBuiltIn()){
-            throw new BadRequestException(ErrorMessage.NOT_PERMİTTED_METHOD_MESSAGE);
+            throw new BadRequestException(ErrorMessage.NOT_PERMITTED_METHOD_MESSAGE);
         }
 
         ImageFile imageFile = imageFileService.findImageById(imageId);
@@ -123,9 +123,14 @@ public class CarService {
         Car car = getCar(id);
 
         if (car.getBuiltIn()){
-            throw new BadRequestException(ErrorMessage.NOT_PERMİTTED_METHOD_MESSAGE);
+            throw new BadRequestException(ErrorMessage.NOT_PERMITTED_METHOD_MESSAGE);
         }
 
         carRepository.delete(car);
+    }
+
+    public Car getCarById(Long id) {
+        return carRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException(String.format(ErrorMessage.CAR_NOT_FOUND_MESSAGE,id)));
     }
 }

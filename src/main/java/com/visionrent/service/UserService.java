@@ -26,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 
 @Service
 public class UserService {
@@ -132,7 +131,7 @@ public class UserService {
     public void updatePassword(UpdatePasswordRequest updatePasswordRequest) {
         User user = getCurrentUser();
         if (user.getBuiltIn()){
-            throw new BadRequestException(ErrorMessage.NOT_PERMİTTED_METHOD_MESSAGE);
+            throw new BadRequestException(ErrorMessage.NOT_PERMITTED_METHOD_MESSAGE);
         }
         if (!passwordEncoder.matches(updatePasswordRequest.getOldPassword(), user.getPassword())) {
             // encode işlemini passwordEncoder daki matches methodu otomatik sağlıyor
@@ -149,7 +148,7 @@ public class UserService {
         User user = getCurrentUser();
 
         if (user.getBuiltIn()){
-            throw new BadRequestException(ErrorMessage.NOT_PERMİTTED_METHOD_MESSAGE);
+            throw new BadRequestException(ErrorMessage.NOT_PERMITTED_METHOD_MESSAGE);
         }
         boolean emailExist = userRepository.existsByEmail(userUpdateRequest.getEmail());
         if (emailExist && !userUpdateRequest.getEmail().equals(user.getEmail())) {
@@ -169,7 +168,7 @@ public class UserService {
         User user = getById(id);
 
         if (user.getBuiltIn()){
-            throw new BadRequestException(ErrorMessage.NOT_PERMİTTED_METHOD_MESSAGE);
+            throw new BadRequestException(ErrorMessage.NOT_PERMITTED_METHOD_MESSAGE);
         }
         boolean emailExist = userRepository.existsByEmail(adminUserUpdateRequest.getEmail());
         if (emailExist && !adminUserUpdateRequest.getEmail().equals(user.getEmail())) {
@@ -227,7 +226,7 @@ public class UserService {
         User user =  getById(id);
 
         if (user.getBuiltIn()){
-            throw new BadRequestException(ErrorMessage.NOT_PERMİTTED_METHOD_MESSAGE);
+            throw new BadRequestException(ErrorMessage.NOT_PERMITTED_METHOD_MESSAGE);
         }
         userRepository.deleteById(id);
     }

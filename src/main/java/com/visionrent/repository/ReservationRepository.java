@@ -2,6 +2,9 @@ package com.visionrent.repository;
 
 import com.visionrent.domain.Reservation;
 import com.visionrent.domain.enums.ReservationStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,5 +31,14 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
                                      @Param("pickUpTime")LocalDateTime pickUpTime,
                                      @Param("dropOffTime") LocalDateTime dropOffTime,
                                      @Param("status") ReservationStatus[] status);
+
+     // --------------------->
+
+     // sadece Car'ları getir, Car'ların imagelarını da getir ama imageData gelmesin
+     @EntityGraph(attributePaths = {"car" , "car.image"})
+     List<Reservation> findAll();
+
+    @EntityGraph(attributePaths = {"car" , "car.image"})
+    Page<Reservation> findAll(Pageable pageable);
 
 }
