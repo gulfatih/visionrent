@@ -32,6 +32,9 @@ public class CarService {
     @Autowired
     private CarMapper carMapper;
 
+    @Autowired
+    private ReservationService reservationService;
+
     public void saveCar(UUID imageId, CarDTO carDTO) {
 
         // image Id image repo da var mı?
@@ -124,6 +127,11 @@ public class CarService {
 
         if (car.getBuiltIn()){
             throw new BadRequestException(ErrorMessage.NOT_PERMITTED_METHOD_MESSAGE);
+        }
+
+        boolean exist = reservationService.existsByCar(car);
+        if (exist){
+            throw new BadRequestException(ErrorMessage.CAR_USED_BY_RESERVATION_MESSAGE);
         }
 
         carRepository.delete(car);

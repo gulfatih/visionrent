@@ -1,6 +1,8 @@
 package com.visionrent.repository;
 
+import com.visionrent.domain.Car;
 import com.visionrent.domain.Reservation;
+import com.visionrent.domain.User;
 import com.visionrent.domain.enums.ReservationStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
@@ -41,4 +44,16 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @EntityGraph(attributePaths = {"car" , "car.image"})
     Page<Reservation> findAll(Pageable pageable);
 
+    @EntityGraph(attributePaths = {"car", "car.image", "user"})
+    Optional<Reservation> findById(Long id);
+
+    @EntityGraph(attributePaths = {"car", "car.image", "user"})
+    Page<Reservation> findAllByUser(User user, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"car", "car.image", "user"})
+    Optional<Reservation> findByIdAndUser(Long id, User user);
+
+    boolean existsByCar(Car car);
+
+    boolean existsByUser(User user);
 }

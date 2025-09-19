@@ -4,6 +4,7 @@ import com.visionrent.domain.Car;
 import com.visionrent.domain.User;
 import com.visionrent.dto.ReservationDTO;
 import com.visionrent.dto.request.ReservationRequest;
+import com.visionrent.dto.request.ReservationUpdateRequest;
 import com.visionrent.dto.response.CarAvailabilityResponse;
 import com.visionrent.dto.response.ResponseMessage;
 import com.visionrent.dto.response.VRResponse;
@@ -88,7 +89,7 @@ public class ReservationController {
                                                                   required = false,
                                                                   defaultValue = "DESC" ) Sort.Direction direction){
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, prop));
-        Page<ReservationDTO> allReservations = reservationService.getReservationPage(pageable);
+        Page<ReservationDTO> allReservations = reservationService.getReservationDTOPage(pageable);
 
         return ResponseEntity.ok(allReservations);
     }
@@ -108,6 +109,81 @@ public class ReservationController {
         VRResponse response = new CarAvailabilityResponse(ResponseMessage.CAR_AVAILABLE_MESSAGE, true, isAvailable, totalPrice);
         return ResponseEntity.ok(response);
     }
+
+
+    @PutMapping("/admin/auth")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<VRResponse> updateReservation(
+            @RequestParam("carId") Long carId,
+            @RequestParam("reservationId") Long reservationId,
+            @Valid @RequestBody ReservationUpdateRequest reservationUpdateRequest){
+
+        Car car = carService.getCarById(carId);
+
+        reservationService.updateReservation(reservationId, car, reservationUpdateRequest);
+
+        VRResponse response = new VRResponse(ResponseMessage.RESERVATION_UPDATED_RESPONSE_MESSAGE, true);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
+    }
+
+    @GetMapping("/{id}/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ReservationDTO> getReservationById(@PathVariable Long id){
+
+        ReservationDTO reservationDTO = reservationService.getReservationDTO(id);
+        return ResponseEntity.ok(reservationDTO);
+    }
+
+
+    @GetMapping("/admin/auth/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<ReservationDTO>> getAllUserReservationsWithPage(@RequestParam("userId") Long userId,
+                                                                       @RequestParam("page") int page,
+                                                                       @RequestParam("size") int size,
+                                                                       @RequestParam("sort") String prop,
+                                                                       @RequestParam(value = "direction",
+                                                                               required = false,
+                                                                               defaultValue = "DESC" ) Sort.Direction direction){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, prop));
+        User user = userService.getById(userId);
+        Page<ReservationDTO> reservationDTOPage = reservationService.findReservationPageByUser(user, pageable);
+        return ResponseEntity.ok(reservationDTOPage);
+
+    }
+
+    @GetMapping("/{id}/auth")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
+    public ResponseEntity<ReservationDTO> getUserReservationById(@PathVariable Long id){
+        User user = userService.getCurrentUser();
+        ReservationDTO reservationDTO = reservationService.findByIdAndUser(id, user);
+        return ResponseEntity.ok(reservationDTO);
+    }
+
+
+    @GetMapping("/auth/all")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CUSTOMER')")
+    public ResponseEntity<Page<ReservationDTO>> getAllUserReservationsWithPage(@RequestParam("page") int page,
+                                                                    @RequestParam("size") int size,
+                                                                    @RequestParam("sort") String prop,
+                                                                    @RequestParam(value = "direction",
+                                                                        required = false,
+                                                                        defaultValue = "DESC" ) Sort.Direction direction){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, prop));
+        User user = userService.getCurrentUser();
+        Page<ReservationDTO> reservationDTOPage = reservationService.findReservationPageByUser(user, pageable);
+        return ResponseEntity.ok(reservationDTOPage);
+    }
+
+
+    @DeleteMapping("/admin/{id}/auth")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<VRResponse> deleteReservation(@PathVariable Long id){
+        reservationService.removeById(id);
+        VRResponse response = new VRResponse(ResponseMessage.RESERVATION_DELETED_RESPONSE_MESSAGE, true);
+        return ResponseEntity.ok(response);
+    }
+
 
 
 }

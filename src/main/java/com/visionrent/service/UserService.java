@@ -38,20 +38,23 @@ public class UserService {
 
     private final UserMapper userMapper;
 
+    private final ReservationService reservationService;
+
     @Autowired
-    public UserService(UserRepository userRepository, RoleService roleService, @Lazy PasswordEncoder passwordEncoder,  UserMapper userMapper) {
+    public UserService(UserRepository userRepository, RoleService roleService, @Lazy PasswordEncoder passwordEncoder,
+                       UserMapper userMapper, @Lazy ReservationService reservationService) {
         this.userRepository = userRepository;
         this.roleService = roleService;
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
+        this.reservationService = reservationService;
     }
 
     public User getUserByEmail(String email) {
-       User user = userRepository.findByEmail(email).orElseThrow(()->
+       return userRepository.findByEmail(email).orElseThrow(()->
                 new ResourceNotFoundException(String.format(
                         ErrorMessage.USER_NOT_FOUND_MESSAGE, email))
                 );
-       return user;
     }
 
     public void saveUser(RegisterRequest registerRequest) {
@@ -228,6 +231,12 @@ public class UserService {
         if (user.getBuiltIn()){
             throw new BadRequestException(ErrorMessage.NOT_PERMITTED_METHOD_MESSAGE);
         }
+
+        boolean exist = reservationService.existsByUser(user);
+        if (exist){
+            throw new BadRequestException(ErrorMessage.USER_HAS_RESERVATIONS_MESSAGE);
+        }
+
         userRepository.deleteById(id);
     }
 }

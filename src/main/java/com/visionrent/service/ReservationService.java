@@ -5,13 +5,14 @@ import com.visionrent.domain.Reservation;
 import com.visionrent.domain.User;
 import com.visionrent.domain.enums.ReservationStatus;
 import com.visionrent.dto.ReservationDTO;
-import com.visionrent.dto.UserDTO;
 import com.visionrent.dto.request.ReservationRequest;
+import com.visionrent.dto.request.ReservationUpdateRequest;
 import com.visionrent.exception.BadRequestException;
+import com.visionrent.exception.ConflictException;
+import com.visionrent.exception.ResourceNotFoundException;
 import com.visionrent.exception.message.ErrorMessage;
 import com.visionrent.mapper.ReservationMapper;
 import com.visionrent.repository.ReservationRepository;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,8 +30,10 @@ public class ReservationService {
 
     @Autowired
     private ReservationMapper reservationMapper;
+    @Autowired
+    private UserService userService;
 
-    // ************************ CREATE *************************
+    // ************************ CREATE RESERVATION *************************
 
     public void createReservation(ReservationRequest reservationRequest, User user, Car car) {
 
@@ -106,7 +109,85 @@ public class ReservationService {
         return reservationMapper.map(reservations);
     }
 
-    public Page<ReservationDTO> getReservationPage(Pageable pageable) {
+    public Page<ReservationDTO> getReservationDTOPage(Pageable pageable) {
         return reservationRepository.findAll(pageable).map(reservationMapper::reservationToReservationDTO);
+    }
+
+    // -------------------------- UPDATE RESERVATION ---------------------------------------
+
+    public void updateReservation(Long reservationId, Car car, ReservationUpdateRequest reservationUpdateRequest) {
+        Reservation reservation = getById(reservationId);
+
+        if (reservation.getStatus().equals(ReservationStatus.CANCELED) ||
+                reservation.getStatus().equals(ReservationStatus.DONE)) {
+            throw new BadRequestException(ErrorMessage.RESERVATION_STATUS_CANT_CHANGE_MESSAGE);
+        }
+
+        if (reservationUpdateRequest.getStatus()!=null && reservationUpdateRequest.getStatus().equals(ReservationStatus.CREATED)){
+
+            checkReservationTimeIsCorrect(reservationUpdateRequest.getPickUpTime(), reservationUpdateRequest.getDropOffTime());
+
+            List<Reservation> conflictReservations = getConflictReservations(car, reservationUpdateRequest.getPickUpTime(),
+                    reservationUpdateRequest.getDropOffTime());
+            if (!conflictReservations.isEmpty()) {
+                if (!(conflictReservations.size() == 1 && conflictReservations.get(0).getId().equals(reservationId))){
+                    throw new ConflictException(ErrorMessage.CAR_NOT_AVAILABLE_MESSAGE);
+                }
+            }
+
+            Double totalPrice = getTotalPrice(car, reservationUpdateRequest.getPickUpTime(),
+                                                   reservationUpdateRequest.getDropOffTime());
+
+            reservation.setTotalPrice(totalPrice);
+            reservation.setCar(car);
+
+        }
+
+        reservation.setPickUpTime(reservationUpdateRequest.getPickUpTime());
+        reservation.setDropOffTime(reservationUpdateRequest.getDropOffTime());
+        reservation.setPickUpLocation(reservationUpdateRequest.getPickUpLocation());
+        reservation.setDropOffLocation(reservationUpdateRequest.getDropOffLocation());
+        reservation.setStatus(reservation.getStatus());
+        reservationRepository.save(reservation);
+    }
+
+
+    public Reservation getById(Long id){
+        return reservationRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException(String.format(ErrorMessage.RESERVATION_NOT_FOUND_MESSAGE, id)));
+    }
+
+    public ReservationDTO getReservationDTO(Long id) {
+
+        Reservation reservation = getById(id);
+        return reservationMapper.reservationToReservationDTO(reservation);
+    }
+
+    public Page<ReservationDTO> findReservationPageByUser(User user, Pageable pageable) {
+       Page<Reservation> reservationPage = reservationRepository.findAllByUser(user, pageable);
+        return reservationPage.map(reservationMapper::reservationToReservationDTO);
+    }
+
+    public ReservationDTO findByIdAndUser(Long id, User user) {
+        Reservation reservation = reservationRepository.findByIdAndUser(id, user).orElseThrow(() ->
+                new ResourceNotFoundException(String.format(ErrorMessage.RESERVATION_NOT_FOUND_MESSAGE, id)));
+        return reservationMapper.reservationToReservationDTO(reservation);
+    }
+
+    public void removeById(Long id) {
+        boolean exist = reservationRepository.existsById(id);
+
+        if (!exist) {
+            throw new ResourceNotFoundException(String.format(ErrorMessage.RESERVATION_NOT_FOUND_MESSAGE, id));
+        }
+        reservationRepository.deleteById(id);
+    }
+
+    public boolean existsByCar(Car car) {
+        return reservationRepository.existsByCar(car);
+    }
+
+    public boolean existsByUser(User user) {
+        return reservationRepository.existsByUser(user);
     }
 }
