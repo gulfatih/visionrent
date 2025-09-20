@@ -31,4 +31,7 @@ public interface CarRepository extends JpaRepository<Car,Long> {
 
     @Query("SELECT c FROM Car c join c.image img WHERE img.id=:id")
     List<Car> findCarsByImageId(@Param("id") UUID id);
+
+    @EntityGraph(attributePaths = "id")
+    List<Car> getAllBy();
 }

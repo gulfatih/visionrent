@@ -141,4 +141,8 @@ public class CarService {
         return carRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException(String.format(ErrorMessage.CAR_NOT_FOUND_MESSAGE,id)));
     }
+
+    public List<Car> getAllCar() {
+        return carRepository.getAllBy();
+    }
 }
