@@ -5,14 +5,14 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.5</version>
+		<version>3.3.4</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.visionrent</groupId>
 	<artifactId>visionrent</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>visionrent</name>
-	<description>car rental backend project</description>
+	<description>Car Rental Backend Project</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -33,6 +33,7 @@
 		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
 		<lombok.version>1.18.30</lombok.version>
 		<apache.poi.version>5.2.5</apache.poi.version>
+		<springdoc.openapi.version>2.5.0</springdoc.openapi.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -109,6 +110,12 @@
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>${springdoc.openapi.version}</version>
 		</dependency>
 
 		<dependency>

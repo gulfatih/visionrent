@@ -5,9 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.WebSecurityConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,6 +19,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
@@ -26,20 +32,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .cors(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/",
-                             "index.html",
-                             "/login",
+            .requestMatchers("/login",
                              "/register",
-                             "/js/*",
-                             "/css/*",
-                             "/images/*",
                              "/files/download/**",
+                             "/contactmessage/visitors",
                              "/files/display/**",
-                             "/car/visitors/**")
+                             "/car/visitors/**",
+                             "/actuator/info",
+                             "/actuator/health")
             .permitAll().anyRequest().authenticated());
 
         http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -47,14 +52,45 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // ---------- CORS Ayarları --------------
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins("*") // http:127.0.0.1/8080 diye spesifik adresden gelenleri kabul et de diyebiliriz
+                        .allowedHeaders("*")
+                        .allowedMethods("*");
+            }
+        };
+    }
+
+    // -------------SWAGGER Ayarları--------------------------
+
+    private static final String [] AUTH_WHITE_LIST = {
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/",
+            "/index.html",
+            "/images/**",
+            "/css/**",
+            "/js/**"
+    };
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(AUTH_WHITE_LIST);
+    }
+
+    // ----------------------------------------------------------------
+
     @Bean
     public AuthTokenFilter authTokenFilter() {
 
         return new AuthTokenFilter();
-
     }
-
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -79,7 +115,7 @@ public class SecurityConfig {
 //                    .build();
 //    }
 
-    /* --------- provider'ı yazmaktan kurtarıyor ve yapıyı basitleştiriyor provider in görevini otomatik yapıyor  ----------- */
+    /* --------- provider'ı yazmaktan kurtarıyor ve yapıyı basitleştiriyor provider in görevini otomatik yapıyor  ------ */
     @Bean
     public AuthenticationManager authManager(
             AuthenticationConfiguration authenticationConfiguration) throws Exception {
